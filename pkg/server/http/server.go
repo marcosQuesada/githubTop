@@ -51,6 +51,8 @@ func (s *Server) Run() error {
 	r := mux.NewRouter()
 	r.Methods("GET").Path("/top-contributors/v1").Handler(
 		s.makeTopContributorsHandler(s.svc, s.appName))
+	r.Methods("GET").Path("/top-contributors/v2").Handler(
+		s.makeTopContributorsHandler(s.svc, fmt.Sprintf("%s_v2",s.appName)))
 
 	r.Methods("GET").Path("/auth/top-contributors/v1").Handler(
 		s.makeAuthTopContributorsHandler(s.svc, s.authSvc, s.appName))

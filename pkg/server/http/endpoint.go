@@ -2,9 +2,11 @@ package http
 
 import (
 	"context"
+	"errors"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/marcosQuesada/githubTop/pkg/log"
+	"github.com/marcosQuesada/githubTop/pkg/provider"
 	"github.com/marcosQuesada/githubTop/pkg/service"
 	"net/http"
 )
@@ -46,8 +48,17 @@ func (s *Server) makeAuthHandler(svc service.AuthService, appName string) http.H
 
 func makeTopContributorsEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(TopContributorsRequest)
-		c, err := svc.GetTopContributors(ctx, req.City, req.Size)
+		req, ok := request.(TopContributorsRequest)
+		if !ok {
+			return nil, errors.New("unexpected request type")
+		}
+		r := provider.GithubTopRequest{
+			City:    req.City,
+			Size:    req.Size,
+			Version: req.APIv,
+			Sort:    req.Sort,
+		}
+		c, err := svc.GetTopContributors(ctx, r)
 		if err != nil {
 			log.Errorf("Unexpected error getting Top contributors, err %s", err)
 		}

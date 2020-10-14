@@ -14,19 +14,30 @@ const (
 
 // Contributor models github contributor
 type Contributor struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
-	Url  string `json:"url"`
+	ID      int64  `json:"id"`
+	Name    string `json:"name"`
+	Url     string `json:"url"`
+	Company string `json:"company,omitempty"`
+	Email   string `json:"email,omitempty"`
+	Bio     string `json:"bio,omitempty"`
 }
 
 // GithubRepository defines github repository
 type GithubRepository interface {
-	GetGithubTopContributors(ctx context.Context, city string, size int) ([]*Contributor, error)
+	GetGithubTopContributors(ctx context.Context, req GithubTopRequest) ([]*Contributor, error)
 }
 
 type httpGithubRepository struct {
 	client  *GithubClient
 	retries int
+}
+
+// GithubResult defines github contributors top query result
+type GithubTopRequest struct {
+	City    string
+	Size    int
+	Version string
+	Sort    string
 }
 
 // GithubResult defines github contributors top query result
@@ -66,14 +77,14 @@ func NewHttpGithubRepository(appName string, cfg HttpConfig) *httpGithubReposito
 }
 
 // GetGithubTopContributors gets github top contributors
-func (r *httpGithubRepository) GetGithubTopContributors(ctx context.Context, city string, size int) ([]*Contributor, error) {
+func (r *httpGithubRepository) GetGithubTopContributors(ctx context.Context, req GithubTopRequest) ([]*Contributor, error) {
 	var response []*Contributor
 
 	// apply retry policy
 	err := retry.Double(r.retries).Run(func() error {
 		var err error
 
-		response, err = r.getGithubTopContributors(context.Background(), city, size)
+		response, err = r.getGithubTopContributors(context.Background(), req)
 		if err != nil {
 			// on rate limit errors stop retry
 			if !retryOnResponseError(err) {
@@ -87,8 +98,8 @@ func (r *httpGithubRepository) GetGithubTopContributors(ctx context.Context, cit
 	return response, err
 }
 
-func (r *httpGithubRepository) getGithubTopContributors(ctx context.Context, city string, size int) ([]*Contributor, error) {
-	rp := paginateRequest(size)
+func (r *httpGithubRepository) getGithubTopContributors(ctx context.Context, req GithubTopRequest) ([]*Contributor, error) {
+	rp := paginateRequest(req.Size)
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(rp))
@@ -97,7 +108,7 @@ func (r *httpGithubRepository) getGithubTopContributors(ctx context.Context, cit
 	// Run page requests concurrently
 	for _, v := range rp {
 		go func(vv requestPage) {
-			tcp, err := r.client.DoRequest(ctx, city, vv.page, vv.size)
+			tcp, err := r.client.DoRequest(ctx, req, vv.page, vv.size)
 			res <- GithubResult{res: tcp, err: err, page: vv.page}
 			wg.Done()
 		}(v)

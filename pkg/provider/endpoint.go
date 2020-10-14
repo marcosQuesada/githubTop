@@ -18,7 +18,11 @@ import (
 
 const (
 	SortByRepositories = "repositories"
+	SortByCommits      = "commits"
+	SortByLabels       = "labels"
 	Query              = "location:%s"
+	APIv1              = "v1"
+	APIv2              = "v2"
 )
 
 var ErrMaxRetries = errors.New("max retries achieved")
@@ -63,14 +67,14 @@ func NewGithubClient(appName string, cfg HttpConfig) *GithubClient {
 }
 
 // DoRequest fires http request
-func (r *GithubClient) DoRequest(ctx context.Context, city string, page, size int) ([]*Contributor, error) {
-	query := fmt.Sprintf(Query, city)
+func (r *GithubClient) DoRequest(ctx context.Context, req GithubTopRequest, page, size int) ([]*Contributor, error) {
+	query := fmt.Sprintf(Query, req.City)
 	opt := &github.SearchOptions{
 		ListOptions: github.ListOptions{
 			Page:    page,
 			PerPage: size,
 		},
-		Sort: SortByRepositories,
+		Sort: req.Sort,
 	}
 
 	//Add execution timeout deadline
@@ -92,9 +96,20 @@ func (r *GithubClient) DoRequest(ctx context.Context, city string, page, size in
 
 	cs := make([]*Contributor, size)
 	for k, u := range response.Result.Users {
-		cs[k] = &Contributor{ID: *u.ID, Name: *u.Login, Url: *u.URL}
+		c := &Contributor{ID: *u.ID, Name: *u.Login, Url: *u.URL}
+		if req.Version == APIv2 {
+			if u.Company != nil {
+				c.Company = *u.Company
+			}
+			if u.Email != nil {
+				c.Email = *u.Email
+			}
+			if u.Bio != nil {
+				c.Bio = *u.Bio
+			}
+		}
+		cs[k] = c
 	}
-
 	return cs, nil
 }
 

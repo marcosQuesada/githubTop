@@ -10,8 +10,12 @@ import (
 func TestDefaultContributorServiceOnFakeRepositoryOnSinglePage(t *testing.T) {
 	r := newFakeRepository(50)
 	s := New(r)
-
-	tc, err := s.GetTopContributors(context.Background(), "foo", 50)
+	req := provider.GithubTopRequest{
+		City:    "foo",
+		Size:    50,
+		Version: provider.APIv1,
+	}
+	tc, err := s.GetTopContributors(context.Background(), req)
 	if err != nil {
 		t.Errorf("Unexpected error getting contributors, err %s", err.Error())
 	}
@@ -29,7 +33,12 @@ func TestDefaultContributorServiceOnFakeRepository(t *testing.T) {
 	r := newFakeRepository(150)
 	s := New(r)
 
-	tc, err := s.GetTopContributors(context.Background(), "foo", 150)
+	req := provider.GithubTopRequest{
+		City:    "barcelona",
+		Size:    150,
+		Version: provider.APIv1,
+	}
+	tc, err := s.GetTopContributors(context.Background(), req)
 	if err != nil {
 		t.Errorf("Unexpected error getting contributors, err %s", err.Error())
 	}
@@ -61,6 +70,6 @@ func newFakeRepository(totalItems int) *fakeRepository {
 	}
 }
 
-func (f *fakeRepository) GetGithubTopContributors(ctx context.Context, city string, size int) ([]*provider.Contributor, error) {
+func (f *fakeRepository) GetGithubTopContributors(ctx context.Context,  req provider.GithubTopRequest) ([]*provider.Contributor, error) {
 	return f.items, nil
 }

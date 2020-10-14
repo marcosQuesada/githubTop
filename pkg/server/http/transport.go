@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // ErrUnexpected happens on unknown source error
@@ -23,6 +24,8 @@ type TopContributorsRequest struct {
 	City  string
 	Size  int
 	Token string
+	Sort  string
+	APIv  string
 }
 
 // TopContributorsResponse defines api response
@@ -61,7 +64,17 @@ func topContributorsRequestDecoder(_ context.Context, r *http.Request) (interfac
 		return nil, service.ErrInvalidArgument
 	}
 
-	return TopContributorsRequest{City: city, Size: int(size), Token: token}, nil
+	sort := r.URL.Query().Get("sort")
+	if sort == "" {
+		sort = provider.SortByRepositories
+	}
+
+	version := provider.APIv1
+	if strings.Contains(r.URL.Path, provider.APIv2) {
+		version = provider.APIv2
+	}
+
+	return TopContributorsRequest{City: city, Size: int(size), Token: token, Sort: sort, APIv: version}, nil
 }
 
 // AuthRequest defines auth request

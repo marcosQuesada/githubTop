@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
+	"github.com/marcosQuesada/githubTop/pkg/provider"
 	"github.com/marcosQuesada/githubTop/pkg/service"
 	"net/http"
 	"net/http/httptest"
@@ -16,18 +16,21 @@ var dataProvider = []struct {
 	uri          string
 	expectedSize int
 	city         string
+	APIv         string
+	sort         string
 	err          error
 }{
-	{"", 0, "", service.ErrEmptyCity},
-	{"?size=150", 150, "", service.ErrEmptyCity},
-	{"?city=barcelona&size=150", 150, "barcelona", nil},
-	{"?size=aaaaa", 0, "", service.ErrEmptyCity},
+	{"http://localhost:8000/top/v1", 0, "", provider.APIv1, provider.SortByRepositories, service.ErrEmptyCity},
+	{"http://localhost:8000/top/v1?size=150", 150, "",provider.APIv1, provider.SortByRepositories,  service.ErrEmptyCity},
+	{"http://localhost:8000/top/v1?city=barcelona&size=150", 150, "barcelona", provider.APIv1, provider.SortByRepositories, nil},
+	{"http://localhost:8000/top/v1?size=aaaaa", 0, "", provider.APIv1, provider.SortByRepositories, service.ErrEmptyCity},
+	{"http://localhost:8000/top/v2?city=barcelona&size=150", 150, "barcelona", provider.APIv2, provider.SortByRepositories, nil},
+	{"http://localhost:8000/top/v2?city=barcelona&size=150&sort=commits", 150, "barcelona", provider.APIv2, provider.SortByCommits, nil},
 }
 
 func TestDecodeTopContributorsRequestCornerCases(t *testing.T) {
 	for _, v := range dataProvider {
-		uri := fmt.Sprintf("http://localhost:8000/top/v1%s", v.uri)
-		req := httptest.NewRequest("GET", uri, nil)
+		req := httptest.NewRequest("GET", v.uri, nil)
 		d, err := topContributorsRequestDecoder(context.Background(), req)
 		if err != v.err {
 			t.Errorf("Unexpected error decoding request, err %v", err)
@@ -48,6 +51,13 @@ func TestDecodeTopContributorsRequestCornerCases(t *testing.T) {
 
 		if tcr.City != v.city {
 			t.Errorf("Unexpected city, expected %s but got %s", v.city, tcr.City)
+		}
+
+		if tcr.APIv != v.APIv {
+			t.Errorf("unexpected api version, expected %s got %s", v.APIv, tcr.APIv)
+		}
+		if tcr.Sort != v.sort {
+			t.Errorf("unexpected sort type, expected %s got %s", v.sort, tcr.Sort)
 		}
 	}
 }

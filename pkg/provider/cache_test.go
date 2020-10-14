@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"testing"
-
-
 )
 
 func TestRepositoryMiddlewareOnCacheHit(t *testing.T) {
@@ -26,7 +24,11 @@ func TestRepositoryMiddlewareOnCacheHit(t *testing.T) {
 		t.Fatalf("unexpected cache total calls, expected %d got %d", expected, ch.called)
 	}
 
-	v, err := r.GetGithubTopContributors(context.Background(), "barcelona", 2)
+	v, err := r.GetGithubTopContributors(context.Background(), GithubTopRequest{
+		City:    "barcelona",
+		Size:    2,
+		Version: APIv1,
+	})
 	if err != nil {
 		t.Errorf("Unexpected error getting contributors, err: %s", err.Error())
 	}
@@ -65,7 +67,11 @@ func TestRepositoryMiddlewareOnCacheMiss(t *testing.T) {
 
 	}
 
-	v, err := r.GetGithubTopContributors(context.Background(), "barcelona", 2)
+	v, err := r.GetGithubTopContributors(context.Background(), GithubTopRequest{
+		City:    "barcelona",
+		Size:    2,
+		Version: APIv1,
+	})
 	if err != nil {
 		t.Errorf("Unexpected error getting contributors, err: %s", err.Error())
 	}
@@ -89,7 +95,7 @@ type fakeRepository struct {
 	called       int
 }
 
-func (f *fakeRepository) GetGithubTopContributors(ctx context.Context, city string, size int) ([]*Contributor, error) {
+func (f *fakeRepository) GetGithubTopContributors(ctx context.Context, req GithubTopRequest) ([]*Contributor, error) {
 	f.called++
 	return f.contributors, nil
 }

@@ -253,11 +253,11 @@ type fakeService struct {
 }
 
 // GetTopContributors fake method
-func (s *fakeService) GetTopContributors(_ context.Context, city string, size int) ([]*provider.Contributor, error) {
+func (s *fakeService) GetTopContributors(_ context.Context, r provider.GithubTopRequest) ([]*provider.Contributor, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	s.requestSize = size
+	s.requestSize = r.Size
 
 	return []*provider.Contributor{{ID: 1, Name: "foo"}}, s.err
 }

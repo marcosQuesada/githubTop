@@ -20,7 +20,7 @@ var (
 )
 
 type Service interface {
-	GetTopContributors(ctx context.Context, city string, size int) ([]*provider.Contributor, error)
+	GetTopContributors(ctx context.Context, r provider.GithubTopRequest) ([]*provider.Contributor, error)
 }
 
 type DefaultService struct {
@@ -33,7 +33,8 @@ func New(r provider.GithubRepository) *DefaultService {
 	}
 }
 
-func (s *DefaultService) GetTopContributors(ctx context.Context, city string, size int) ([]*provider.Contributor, error) {
-	log.Infof("GetTopContributors , city: %s size: %d ", city, size)
-	return s.repository.GetGithubTopContributors(ctx, city, size)
+func (s *DefaultService) GetTopContributors(ctx context.Context, r provider.GithubTopRequest) ([]*provider.Contributor, error) {
+	log.Infof("GetTopContributors , city: %s size: %d sort %s", r.City, r.Size, r.Sort)
+
+	return  s.repository.GetGithubTopContributors(ctx, r)
 }

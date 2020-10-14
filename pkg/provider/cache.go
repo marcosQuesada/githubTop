@@ -49,8 +49,8 @@ func NewCacheMiddleware(cache Cache, repo GithubRepository) *cacheMiddleware {
 }
 
 // GetGithubTopContributors tries cache lookup, on miss access repository
-func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, city string, size int) ([]*Contributor, error) {
-	k := r.key(city, size)
+func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context,  req GithubTopRequest) ([]*Contributor, error) {
+	k := r.key(req.City, req.Size)
 	res, err := r.cache.Get(k)
 	if err == nil {
 		c, ok := res.([]*Contributor)
@@ -66,12 +66,12 @@ func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, city str
 		log.Errorf("Unexpected Error reading cache, err: %s", err.Error())
 	}
 
-	c, errc := r.repository.GetGithubTopContributors(ctx, city, size)
+	c, errc := r.repository.GetGithubTopContributors(ctx, req)
 	if errc != nil {
 		return nil, errc
 	}
 
-	if err = r.AddTopContributors(city, size, c); err != nil {
+	if err = r.AddTopContributors(req.City, req.Size, c); err != nil {
 		log.Errorf("Error adding element on cache is: %s", err.Error())
 	}
 

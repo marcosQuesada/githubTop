@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"errors"
-	"github.com/marcosQuesada/githubTop/pkg/log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -23,7 +22,6 @@ func TestGithubRepositoryOnFakeServerWithRetriesOnTimeoutFiresMaxRetries(t *test
 		mutex.Lock()
 		defer mutex.Unlock()
 
-		log.Info("Iterate")
 		iterations++
 		if iterations < maxRetries {
 			// Sleep to force request timeout
@@ -47,8 +45,12 @@ func TestGithubRepositoryOnFakeServerWithRetriesOnTimeoutFiresMaxRetries(t *test
 
 	//rewrite url to point local server
 	r.client.setURL(u)
-
-	_, err = r.GetGithubTopContributors(context.Background(), "barcelona", 2)
+	req := GithubTopRequest{
+		City:    "barcelona",
+		Size:    2,
+		Version: APIv1,
+	}
+	_, err = r.GetGithubTopContributors(context.Background(), req)
 	if !errors.Is(err, ErrMaxRetries) {
 		t.Errorf("unexpected error getting top contributors, error %v", err)
 	}
@@ -98,6 +100,9 @@ var fakeResponse = `{
       "avatar_url": "https://avatars3.githubusercontent.com/u/125005?v=4",
       "gravatar_id": "",
       "url": "https://api.github.com/users/kristianmandrup",
+      "email": "foo@bar.com",
+      "company": "fakeCompany",
+      "bio": "fakeBio",
       "html_url": "https://github.com/kristianmandrup",
       "followers_url": "https://api.github.com/users/kristianmandrup/followers",
       "following_url": "https://api.github.com/users/kristianmandrup/following{/other_user}",
@@ -118,6 +123,9 @@ var fakeResponse = `{
       "avatar_url": "https://avatars3.githubusercontent.com/u/13684313?v=4",
       "gravatar_id": "",
       "url": "https://api.github.com/users/leobcn",
+	  "email": "foo@bar.com",
+      "company": "fakeCompany",
+      "bio": "fakeBio",
       "html_url": "https://github.com/leobcn",
       "followers_url": "https://api.github.com/users/leobcn/followers",
       "following_url": "https://api.github.com/users/leobcn/following{/other_user}",
