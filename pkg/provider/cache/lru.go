@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/golang-lru/simplelru"
 	"github.com/marcosQuesada/githubTop/pkg/log"
+	"github.com/marcosQuesada/githubTop/pkg/provider"
 	"sync"
 	"time"
 )
@@ -15,7 +16,7 @@ const (
 )
 
 var (
-	ErrCacheMiss      = errors.New("entry not found in cache.")
+
 	ErrUnexpectedType = errors.New("unexpected type.")
 )
 
@@ -70,7 +71,7 @@ func (c *LruCache) Get(k string) (interface{}, error) {
 
 	v, ok := c.lru.Get(k)
 	if !ok {
-		return nil, ErrCacheMiss
+		return nil, provider.ErrCacheMiss
 	}
 
 	vv, ok := v.(*Entry)

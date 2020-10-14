@@ -14,9 +14,9 @@ const (
 
 // Contributor models github contributor
 type Contributor struct {
-	ID   int64
-	Name string
-	Url  string
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }
 
 // GithubRepository defines github repository

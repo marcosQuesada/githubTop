@@ -2,10 +2,15 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/marcosQuesada/githubTop/pkg/log"
-	"github.com/marcosQuesada/githubTop/pkg/provider/cache"
+
 	"time"
+)
+
+var(
+	ErrCacheMiss      = errors.New("entry not found in cache.")
 )
 
 type Cache interface {
@@ -56,7 +61,7 @@ func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, city str
 		return c, nil
 	}
 
-	if err != cache.ErrCacheMiss {
+	if err != ErrCacheMiss {
 		//on unexpected cache errors, track it and let repository do its work
 		log.Errorf("Unexpected Error reading cache, err: %s", err.Error())
 	}
@@ -77,7 +82,7 @@ func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, city str
 func (r *cacheMiddleware) AddTopContributors(city string, size int, contributors []*Contributor) error {
 	k := r.key(city, size)
 
-	return r.cache.Add(k, contributors)
+	return r.cache.Add(k,  contributors)
 }
 
 // Terminate close repository

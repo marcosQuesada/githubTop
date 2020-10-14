@@ -2,7 +2,7 @@ package provider
 
 import (
 	"context"
-	"github.com/marcosQuesada/githubTop/pkg/provider/cache"
+
 	"testing"
 
 
@@ -106,7 +106,7 @@ func (f *fakeCache) Add(k string, v interface{}) error {
 
 func (f *fakeCache) Get(k string) (interface{}, error) {
 	if len(f.contributors) == 0 {
-		return nil, cache.ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 	return f.contributors, nil
 }
