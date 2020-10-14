@@ -18,7 +18,7 @@ func TestInstrumentingMiddleware(t *testing.T) {
 
 	p, err := r(context.Background(), struct{}{})
 	if err != nil {
-		t.Errorf("Unexpected error %s", err.Error())
+		t.Errorf("Unexpected error %v", err)
 	}
 
 	if p != 1 {

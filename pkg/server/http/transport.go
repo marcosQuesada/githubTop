@@ -50,12 +50,14 @@ func topContributorsRequestDecoder(_ context.Context, r *http.Request) (interfac
 
 	rawSize := r.URL.Query().Get("size")
 	var size = int64(0)
-	if rawSize != "" {
-		size, err = strconv.ParseInt(rawSize, 10, 0)
-		if err != nil {
-			log.Errorf("Bad request, error parsing size, err %v", err)
-			return nil, service.ErrInvalidArgument
-		}
+	if rawSize == "" {
+		return nil, service.ErrInvalidArgument
+	}
+
+	size, err = strconv.ParseInt(rawSize, 10, 0)
+	if err != nil {
+		log.Errorf("Bad request, error parsing size, err %v", err)
+		return nil, service.ErrInvalidArgument
 	}
 
 	if size != service.SmallSize && size != service.MediumSize && size != service.LargeSize {
@@ -75,6 +77,32 @@ func topContributorsRequestDecoder(_ context.Context, r *http.Request) (interfac
 	}
 
 	return TopContributorsRequest{City: city, Size: int(size), Token: token, Sort: sort, APIv: version}, nil
+}
+
+// TopContributorsRequest defines api request
+type TopSearchedLocationsRequest struct {
+	Size  int
+}
+
+// TopContributorsResponse defines api response
+type TopSearchedLocationsResponse struct {
+	Top []*provider.Location
+}
+
+func topSearchedLocationsRequestDecoder(_ context.Context, r *http.Request) (interface{}, error) {
+	rawSize := r.URL.Query().Get("size")
+	var size = int64(0)
+	if rawSize == "" {
+		return nil, service.ErrInvalidArgument
+	}
+
+	size, err := strconv.ParseInt(rawSize, 10, 0)
+	if err != nil {
+		log.Errorf("Bad request, error parsing size, err %v", err)
+		return nil, service.ErrInvalidArgument
+	}
+
+	return TopSearchedLocationsRequest{Size: int(size)}, nil
 }
 
 // AuthRequest defines auth request

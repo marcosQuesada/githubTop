@@ -34,7 +34,7 @@ func TestEndpointDevelopmentFlow(t *testing.T) {
 	var netClient = &http.Client{}
 	resp, err := netClient.Get(fmt.Sprintf("%s?city=barcelona&size=%d", svr.URL, expectedSize))
 	if err != nil {
-		log.Fatalf("Response error %v", err.Error())
+		log.Fatalf("Response error %v", err)
 	}
 
 	if svc.getRequestedSize() != expectedSize {
@@ -87,7 +87,7 @@ func TestOnEndpointErrorResponseHasErrorEncodedAsResponseBody(t *testing.T) {
 	netClient := &http.Client{}
 	resp, err := netClient.Get(fmt.Sprintf("%s?city=barcelona&size=%d", svr.URL, expectedSize))
 	if err != nil {
-		t.Fatalf("Unexpected response error, err %s", err.Error())
+		t.Fatalf("Unexpected response error, err %v", err)
 	}
 
 	if resp.StatusCode != http.StatusInternalServerError {
@@ -96,7 +96,7 @@ func TestOnEndpointErrorResponseHasErrorEncodedAsResponseBody(t *testing.T) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		t.Errorf("Unexpected error reading body, err %s", err.Error())
+		t.Errorf("Unexpected error reading body, err %v", err)
 	}
 
 	defer func() {
@@ -122,7 +122,7 @@ func TestOnEndpointErrorResponseHasErrorEncodedAsResponseBody(t *testing.T) {
 func TestAuthEndpointWorkFlowOnValidCredentials(t *testing.T) {
 	s := &Server{}
 	svc := &fakeAuthService{}
-	h := s.makeAuthHandler(svc, "fakeApp")
+	h := s.makeAuthTransport(svc, "fakeApp")
 	svr := httptest.NewServer(h)
 
 	defer func() {
@@ -267,6 +267,12 @@ func (s *fakeService) getRequestedSize() int {
 	defer s.mutex.RUnlock()
 
 	return s.requestSize
+}
+
+func (s *fakeService) GetTopSearchedLocations(_ context.Context, size int)([]*provider.Location, error) {
+	return []*provider.Location{
+		{Name: "barcelona", Score: 1000},{Name: "badalona", Score: 10},
+	}, nil
 }
 
 type fakeAuthService struct {

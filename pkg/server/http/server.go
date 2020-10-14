@@ -1,9 +1,11 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/marcosQuesada/githubTop/pkg/log"
+	"github.com/marcosQuesada/githubTop/pkg/provider"
 	"github.com/marcosQuesada/githubTop/pkg/service"
 	"net"
 	"net/http"
@@ -15,18 +17,24 @@ import (
 
 var ErrClosedConn = errors.New("use of closed network connection")
 
+
+type Service interface {
+	GetTopContributors(ctx context.Context, r provider.GithubTopRequest) ([]*provider.Contributor, error)
+	GetTopSearchedLocations(ctx context.Context, size int) ([]*provider.Location, error)
+}
+
 // Server defines http server
 type Server struct {
 	port     int
 	listener net.Listener
-	svc      service.Service
+	svc      Service
 	authSvc  service.AuthService
 	appName  string
 	mutex    sync.Mutex
 }
 
 // New instantiates http server
-func New(port int, svc service.Service, auth service.AuthService, appName string) *Server {
+func New(port int, svc Service, auth service.AuthService, appName string) *Server {
 	return &Server{
 		port:    port,
 		svc:     svc,
@@ -57,8 +65,11 @@ func (s *Server) Run() error {
 	r.Methods("GET").Path("/auth/top-contributors/v1").Handler(
 		s.makeAuthTopContributorsHandler(s.svc, s.authSvc, s.appName))
 
-	r.Methods("POST").Path("/auth").Handler(s.makeAuthHandler(s.authSvc, s.appName))
+	r.Methods("POST").Path("/auth").Handler(s.makeAuthTransport(s.authSvc, s.appName))
 	r.Methods("GET").Path("/metrics").Handler(promhttp.Handler())
+
+	r.Methods("GET").Path("/top-searched-locations/v1").Handler(
+		s.makeTopSearchedLocationsHandler(s.svc, s.appName))
 
 	http.Handle("/", r)
 

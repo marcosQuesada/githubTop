@@ -5,6 +5,7 @@ import (
 	"github.com/marcosQuesada/githubTop/pkg/log"
 	"github.com/marcosQuesada/githubTop/pkg/provider"
 	"github.com/marcosQuesada/githubTop/pkg/provider/cache"
+	"github.com/marcosQuesada/githubTop/pkg/provider/ranking"
 	httpServer "github.com/marcosQuesada/githubTop/pkg/server/http"
 	"github.com/marcosQuesada/githubTop/pkg/service"
 	"github.com/spf13/cobra"
@@ -29,6 +30,7 @@ var (
 	rateLimitWindow      time.Duration
 	rateLimitMaxRequests int
 	redisHost            string
+	redisRanking         bool
 )
 
 // httpCmd represents the http command
@@ -63,7 +65,17 @@ var httpCmd = &cobra.Command{
 
 		cache := provider.NewCacheMiddleware(middleware, repo)
 
-		svc := service.New(cache)
+		var rnkPer provider.Ranking
+		rnkPer = ranking.NewInMemory(ranking.DefaultPriorityQueueSize)
+		if redisRanking {
+
+			cl := redis.NewClient(&redis.Options{
+				Addr: redisHost,
+			})
+			rnkPer = ranking.NewRedis(cl)
+		}
+		rnk := provider.NewLocationRanking(rnkPer)
+		svc := service.New(cache, rnk)
 		ac := service.NewDefaultStaticAuthorizer()
 		auth := service.NewAuth(ac, "config/app.rsa", "config/app.rsa.pub", tokenTTL, AppName)
 		s := httpServer.New(port, svc, auth, AppName)
@@ -103,4 +115,5 @@ func init() {
 	httpCmd.Flags().DurationVarP(&rateLimitWindow, "ratewindow", "w", time.Minute*1, "rate limit time window")
 	httpCmd.Flags().IntVarP(&rateLimitMaxRequests, "ratemax", "m", 30, "rate limit max requests")
 	httpCmd.Flags().StringVarP(&redisHost, "redis", "s", "", "Redis host if any")
+	httpCmd.Flags().BoolVarP(&redisRanking, "redis-ranking", "k", false, "Use redis ranking")
 }

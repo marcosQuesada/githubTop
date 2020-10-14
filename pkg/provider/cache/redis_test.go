@@ -25,7 +25,12 @@ func TestAddEntryOnRedisCache(t *testing.T) {
 	r := NewRedis(cl, time.Second)
 
 	key := "foo"
-	value := "bar"
+	value := []*provider.Contributor{
+		{
+			ID: 123,
+			Name:  "fooBar",
+		},
+	}
 	err := r.Add(key, value)
 	if err != nil {
 		t.Fatalf("unexpected error adding cache entry, error %v", err)
@@ -36,8 +41,17 @@ func TestAddEntryOnRedisCache(t *testing.T) {
 		t.Fatalf("unexpected error getting cache entry, error %v", err)
 	}
 
-	if res.(string) != value {
-		t.Errorf("expected values do not match, expected %s got %s", res, value)
+	v, ok := res.([]*provider.Contributor)
+	if !ok {
+		t.Fatalf("unexpected type on cache, got %T", res)
+	}
+
+	if len(v) == 0 {
+		t.Fatal("Unexpected cache response, empty size")
+	}
+
+	if v[0].Name != value[0].Name{
+		t.Errorf("expected values do not match, expected %s got %s", v[0].Name, value[0].Name)
 	}
 }
 
@@ -56,7 +70,12 @@ func TestAddEntryOnRedisCacheAndWaitExpiration(t *testing.T) {
 	r := NewRedis(cl, time.Second)
 
 	key := "foo"
-	value := "bar"
+	value := []*provider.Contributor{
+		{
+			ID: 123,
+			Name:  "fooBar",
+		},
+	}
 	err := r.Add(key, value)
 	if err != nil {
 		t.Fatalf("unexpected error adding cache entry, error %v", err)

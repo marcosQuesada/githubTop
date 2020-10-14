@@ -9,7 +9,8 @@ import (
 
 func TestDefaultContributorServiceOnFakeRepositoryOnSinglePage(t *testing.T) {
 	r := newFakeRepository(50)
-	s := New(r)
+	rnk := &fakeRanking{}
+	s := New(r, rnk)
 	req := provider.GithubTopRequest{
 		City:    "foo",
 		Size:    50,
@@ -31,7 +32,8 @@ func TestDefaultContributorServiceOnFakeRepositoryOnSinglePage(t *testing.T) {
 
 func TestDefaultContributorServiceOnFakeRepository(t *testing.T) {
 	r := newFakeRepository(150)
-	s := New(r)
+	rnk := &fakeRanking{}
+	s := New(r, rnk)
 
 	req := provider.GithubTopRequest{
 		City:    "barcelona",
@@ -72,4 +74,16 @@ func newFakeRepository(totalItems int) *fakeRepository {
 
 func (f *fakeRepository) GetGithubTopContributors(ctx context.Context,  req provider.GithubTopRequest) ([]*provider.Contributor, error) {
 	return f.items, nil
+}
+
+type fakeRanking struct {}
+
+func (f *fakeRanking) GetTopSearchedLocations(ctx context.Context, size int) ([]*provider.Location, error) {
+	return []*provider.Location{
+		{Name: "barcelona", Score: 1000},{Name: "badalona", Score: 10},
+	}, nil
+}
+
+func (f *fakeRanking) IncreaseCityScore(ctx context.Context, city string) error {
+	return nil
 }
