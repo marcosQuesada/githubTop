@@ -62,7 +62,7 @@ func (s *Server) Run() error {
 
 	err = http.Serve(ln, nil)
 	if e, ok := err.(*net.OpError); ok {
-		if e.Err.Error() == ErrClosedConn.Error() {
+		if errors.Is(e.Err, ErrClosedConn) {
 			return nil
 		}
 	}

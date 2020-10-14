@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	kitlog "github.com/go-kit/kit/log"
@@ -16,9 +17,11 @@ import (
 )
 
 const (
-	SORT_BY_REPOSITORIES = "repositories"
-	QUERY                = "location:%s"
+	SortByRepositories = "repositories"
+	Query              = "location:%s"
 )
+
+var ErrMaxRetries = errors.New("max retries achieved")
 
 // GithubClient builds a github http client
 type GithubClient struct {
@@ -61,13 +64,13 @@ func NewGithubClient(appName string, cfg HttpConfig) *GithubClient {
 
 // DoRequest fires http request
 func (r *GithubClient) DoRequest(ctx context.Context, city string, page, size int) ([]*Contributor, error) {
-	query := fmt.Sprintf(QUERY, city)
+	query := fmt.Sprintf(Query, city)
 	opt := &github.SearchOptions{
 		ListOptions: github.ListOptions{
 			Page:    page,
 			PerPage: size,
 		},
-		Sort: SORT_BY_REPOSITORIES,
+		Sort: SortByRepositories,
 	}
 
 	//Add execution timeout deadline
@@ -76,12 +79,15 @@ func (r *GithubClient) DoRequest(ctx context.Context, city string, page, size in
 
 	res, err := r.endpoint(ctx, GithubRequest{query, opt})
 	if err != nil {
+		log.Errorf("Endpoint error %v", err)
 		return nil, err
 	}
 
 	response := res.(GithubResponse)
+	log.Infof("Remaining is %d", response.Response.Remaining)
 	if response.Response.Remaining == 0 {
 		log.Error("Max Request by Minute achieved")
+		return nil, ErrMaxRetries
 	}
 
 	cs := make([]*Contributor, size)
@@ -110,7 +116,6 @@ func makeGithubClientEndpoint(client *github.Client) endpoint.Endpoint {
 func retryOnResponseError(err error) (retry bool) {
 	switch err.(type) {
 	case *github.AcceptedError:
-
 		return true
 	case *github.RateLimitError:
 		return false

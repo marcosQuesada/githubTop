@@ -17,16 +17,16 @@ Main app layers:
  - Encoders
  - Server Handlers: transport layer
 
- App Core based on Service layer, so all requests to the server are being considered commands handled by services. Those service handlers are the base of exposed endpoints, enabling middleware design, so instrumentation, metrics, rate-limits... and many more components can be plugged easy in a decoupled way.
+ App Core based on Service layer, all incoming server are being considered commands handled by services.  Those service handlers are the base of exposed endpoints, enabling middleware design, so instrumentation, metrics, rate-limits... and many more components can be plugged easy in a decoupled way.
 
  Endpoints and middlewares are finally wrapped by encoders and plugged to the transport layer. In our case, json is used as encoders and are plugged as http.Handler in our http Server.
 
  ![alt text](https://raw.githubusercontent.com/mycodesmells/gokit-example/master/res/onion.png "App architecture")
 
- Service errors are translated to proper transport error codes, in our case, to http.StatusCode embedding errors as json payloads.
+ Service errors translated properly to transport error codes, in our case, as http.StatusCode embedding errors as json payloads.
 
- ### Design Trade-offs
- As our challenge goal could be achieved with a regular http server, github client and a cache layer, the approach could be seen as little over-complex, but, with that in mind, endpoints and middleware architecture enables us to replace all project components where required, example: expose our service using grpc it's just a layer to wrap service layer... to add persistent connections, just need to add new socket handlers... and so on.
+### Design Trade-offs
+As our challenge goal could be achieved with a regular http server, github client and a cache layer, the approach could be seen as little over-complex, but, with that in mind, endpoints and middleware architecture enables us to replace all project components where required, example: expose our service using grpc it's just a layer to wrap service layer... to add persistent connections, just need to add new socket handlers... and so on.
 
 Apart from that, go-kit components give us really valuable services that can be added as just another middleware layers: request tracing, abuse control...
 
@@ -41,19 +41,19 @@ Apart from that, go-kit components give us really valuable services that can be 
  From the service point of view, we just have a repository, in charge of loading results, this is implemented as an HttpRepository that consumes github client endpoint.
 
 ### Github Client
- Github client includes now timeout and retry policy,retrying on different faiiure scenarios, including (202 responses). Rate limit middleware is just mirroring real github api behaviour, so can be ommited as its not crucial in our scenario, but in other cases, requests must be stopped to free rate-limit banings.
+Github client includes now timeout and retry policy, retrying on different failure scenarios, including (202 responses). Rate limit middleware is just a mirror from real github api behaviour, wrapping original endpoint offering a limit where requests must be stopped up to free rate-limit max request.
 
 ### Cache Layer
- HttpRepository is wrapped by a cache layer, so each request becomes a real request to github api if we have a cache miss.
- Cache has been implemented in top of an LRU structure, adding a worker in charge of entry expirations.
+HttpRepository is wrapped by a cache layer, so each request becomes a real request to github api if we have a cache miss.
+Cache has been implemented in top of an LRU structure, adding a worker in charge of entry expiration.
 
 ### Auth Layer
- An authentication service has been built, using JWT and cookies (i don't like cookies too, but have been great for testing :) ). As explained, auth layer wraps service layer, so credentials are required to access final services, those credentials (user / pass) are validated using right now an static validator, but it's decoupled, so can be easy replaced.
+ An authentication service has been built, using JWT and cookies (i don't like cookies too, but have been great for testing :) ). As explained, auth layer wraps service layer, so that, credentials are required to access final services, those credentials (user / pass) are validated using right now a static validator, but it's decoupled, so can be easy replaced.
 
- To allow jwt real scheme, me need a seperate authentication service... on the challenge is implemented as another endpoint too.
- For testing purposes, **token expiration is set to just one minute**, it's quite easy to get expired during tests.
+ To allow jwt real scheme, me need a seperated authentication service... on the challenge has been implemented as another endpoint too.
+ For testing purposes, **token expiration fixed to just one minute**, it's quite easy to get expired during tests.
 
- Required keys are provided in config folder, keys were generated as:
+ Required keys provided in config folder, keys have been generated as:
   ```
   openssl genrsa -out app.rsa 1024
   openssl rsa -in app.rsa -pubout > app.rsa.pub
@@ -77,7 +77,7 @@ make docker-run
 
  On Cli, from root project:
 ```
-make run
+go run main.go http --oauth  XXXXXXXXXXXXXX (Github Personal Token)
 ```
 
 ## Use cases

@@ -2,78 +2,28 @@ package provider
 
 import (
 	"context"
+	"github.com/marcosQuesada/githubTop/pkg/provider/cache"
 	"testing"
-	"time"
+
+
 )
 
-func TestAddEntriesToCacheAndExpireOldEntriesCleansCache(t *testing.T) {
-	ttl := time.Millisecond * 100
-	exp := time.Hour
-	c, err := NewLRUCache(ttl, exp)
-	if err != nil {
-		t.Fatalf("Unexpected error creating cache, err: %s", err.Error())
-	}
-
-	_ = c.Add("key_1", "foo")
-	_ = c.Add("key_2", "bar")
-	_ = c.Add("key_3", "zzz")
-
-	if c.Len() != 3 {
-		t.Errorf("Unexpected cache size, expected 3 got %d", c.Len())
-	}
-
-	// Sleeps on tests are not the correct way to test things, but in this case
-	// if something goes wrong, will take more time to execute, so entries will be expired
-	time.Sleep(c.ttl)
-
-	err = c.expire()
-	if err != nil {
-		t.Errorf("Unexpected error expiring cache, err: %s", err.Error())
-	}
-
-	if c.Len() != 0 {
-		t.Errorf("Unexpected cache size, expected 0 got %d", c.Len())
-	}
-}
-
-func TestAddEntriesToCacheAndExpirerCleansOldEntries(t *testing.T) {
-	ttl := time.Millisecond * 100
-	expWorker := time.Millisecond * 300
-	c, err := NewLRUCache(ttl, expWorker)
-	if err != nil {
-		t.Fatalf("Unexpected error creating cache, err: %s", err.Error())
-	}
-	c.RunExpirationWorker()
-
-	_ = c.Add("key_1", "foo")
-	_ = c.Add("key_2", "bar")
-	_ = c.Add("key_3", "zzz")
-
-	if c.Len() != 3 {
-		t.Errorf("Unexpected cache size, expected 3 got %d", c.Len())
-	}
-
-	time.Sleep(time.Millisecond * 400)
-
-	if c.Len() != 0 {
-		t.Errorf("Unexpected cache size, expected 0 got %d", c.Len())
-	}
-
-	c.TerminateExpirationWorker()
-}
-
-func TestNewGithubRepositoryCache(t *testing.T) {
-	cfg := CacheConfig{
-		time.Hour * 1,
-		time.Second * 1,
-	}
-
-	r := NewGithubRepositoryCache(cfg, &fakeRepository{})
-
+func TestRepositoryMiddlewareOnCacheHit(t *testing.T) {
 	c := []*Contributor{{ID: 1}, {ID: 2}}
+	ch := &fakeCache{contributors: c}
+	repo := &fakeRepository{}
+	r := NewCacheMiddleware(ch, repo)
+
 	err := r.AddTopContributors("barcelona", 2, c)
+
 	if err != nil {
 		t.Errorf("Unexpected error adding contributors, err: %s", err.Error())
+
+	}
+
+	expected := 1
+	if ch.called != expected {
+		t.Fatalf("unexpected cache total calls, expected %d got %d", expected, ch.called)
 	}
 
 	v, err := r.GetGithubTopContributors(context.Background(), "barcelona", 2)
@@ -84,10 +34,81 @@ func TestNewGithubRepositoryCache(t *testing.T) {
 	if len(v) != 2 {
 		t.Errorf("Unexpected contributors size, expected 2 got %d", len(v))
 	}
+
+	if ch.called != expected {
+		t.Fatalf("unexpected cache total calls, expected %d got %d", expected, ch.called)
+	}
+
+	expected = 0
+	if repo.called != expected {
+		t.Fatalf("unexpected repository total calls, expected %d got %d", expected, ch.called)
+	}
 }
 
-type fakeRepository struct{}
+func TestRepositoryMiddlewareOnCacheMiss(t *testing.T) {
+	c := []*Contributor{{ID: 1}, {ID: 2}}
+	ch := &fakeCache{}
+	repo := &fakeRepository{contributors: c}
+	r := NewCacheMiddleware(ch, repo)
+
+	err := r.AddTopContributors("barcelona", 2, c)
+
+	if err != nil {
+		t.Errorf("Unexpected error adding contributors, err: %s", err.Error())
+
+	}
+
+	expected := 1
+
+	if ch.called != expected {
+		t.Fatalf("unexpected cache total calls, expected %d got %d", expected, ch.called)
+
+	}
+
+	v, err := r.GetGithubTopContributors(context.Background(), "barcelona", 2)
+	if err != nil {
+		t.Errorf("Unexpected error getting contributors, err: %s", err.Error())
+	}
+
+	if len(v) != 2 {
+		t.Errorf("Unexpected contributors size, expected 2 got %d", len(v))
+	}
+	expected = 2
+	if ch.called != expected {
+		t.Fatalf("unexpected cache total calls, expected %d got %d", expected, ch.called)
+	}
+
+	expected = 1
+	if repo.called != expected {
+		t.Fatalf("unexpected repository total calls, expected %d got %d", expected, ch.called)
+	}
+}
+
+type fakeRepository struct {
+	contributors []*Contributor
+	called       int
+}
 
 func (f *fakeRepository) GetGithubTopContributors(ctx context.Context, city string, size int) ([]*Contributor, error) {
-	return nil, nil
+	f.called++
+	return f.contributors, nil
 }
+
+type fakeCache struct {
+	contributors []*Contributor
+	called       int
+}
+
+func (f *fakeCache) Add(k string, v interface{}) error {
+	f.called++
+	return nil
+}
+
+func (f *fakeCache) Get(k string) (interface{}, error) {
+	if len(f.contributors) == 0 {
+		return nil, cache.ErrCacheMiss
+	}
+	return f.contributors, nil
+}
+
+func (f *fakeCache) Terminate() {}

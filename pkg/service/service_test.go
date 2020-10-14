@@ -9,7 +9,7 @@ import (
 
 func TestDefaultContributorServiceOnFakeRepositoryOnSinglePage(t *testing.T) {
 	r := newFakeRepository(50)
-	s := New(r, "fakeApp")
+	s := New(r)
 
 	tc, err := s.GetTopContributors(context.Background(), "foo", 50)
 	if err != nil {
@@ -27,7 +27,7 @@ func TestDefaultContributorServiceOnFakeRepositoryOnSinglePage(t *testing.T) {
 
 func TestDefaultContributorServiceOnFakeRepository(t *testing.T) {
 	r := newFakeRepository(150)
-	s := New(r, "fakeApp")
+	s := New(r)
 
 	tc, err := s.GetTopContributors(context.Background(), "foo", 150)
 	if err != nil {

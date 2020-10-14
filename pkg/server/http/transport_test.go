@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/marcosQuesada/githubTop/pkg/service"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,11 +16,12 @@ var dataProvider = []struct {
 	uri          string
 	expectedSize int
 	city         string
+	err          error
 }{
-	{"", 0, ""},
-	{"?size=150", 150, ""},
-	{"?city=barcelona&size=150", 150, "barcelona"},
-	{"?size=aaaaa", 0, ""},
+	{"", 0, "", service.ErrEmptyCity},
+	{"?size=150", 150, "", service.ErrEmptyCity},
+	{"?city=barcelona&size=150", 150, "barcelona", nil},
+	{"?size=aaaaa", 0, "", service.ErrEmptyCity},
 }
 
 func TestDecodeTopContributorsRequestCornerCases(t *testing.T) {
@@ -27,13 +29,17 @@ func TestDecodeTopContributorsRequestCornerCases(t *testing.T) {
 		uri := fmt.Sprintf("http://localhost:8000/top/v1%s", v.uri)
 		req := httptest.NewRequest("GET", uri, nil)
 		d, err := topContributorsRequestDecoder(context.Background(), req)
+		if err != v.err {
+			t.Errorf("Unexpected error decoding request, err %v", err)
+		}
+
 		if err != nil {
-			t.Errorf("Unexpected error decoding request, err %s", err.Error())
+			continue
 		}
 
 		tcr, ok := d.(TopContributorsRequest)
 		if !ok {
-			t.Fatalf("Unexpected request type, has %v", req)
+			t.Fatalf("Unexpected request type, has %T", d)
 		}
 
 		if tcr.Size != v.expectedSize {

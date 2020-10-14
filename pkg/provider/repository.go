@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MAX_PER_PAGE = 100
+	MaxPerPage = 100
 )
 
 // Contributor models github contributor
@@ -19,7 +19,7 @@ type Contributor struct {
 	Url  string
 }
 
-// GithubRepository defines github repositoru
+// GithubRepository defines github repository
 type GithubRepository interface {
 	GetGithubTopContributors(ctx context.Context, city string, size int) ([]*Contributor, error)
 }
@@ -98,7 +98,6 @@ func (r *httpGithubRepository) getGithubTopContributors(ctx context.Context, cit
 	for _, v := range rp {
 		go func(vv requestPage) {
 			tcp, err := r.client.DoRequest(ctx, city, vv.page, vv.size)
-
 			res <- GithubResult{res: tcp, err: err, page: vv.page}
 			wg.Done()
 		}(v)
@@ -139,14 +138,14 @@ func paginateRequest(size int) []requestPage {
 	res := []requestPage{}
 	pages := int((size-1)/100) + 1
 	for i := 1; i <= pages; i++ {
-		var items_per_page = size
-		if size > MAX_PER_PAGE {
-			items_per_page = MAX_PER_PAGE
+		var itemsPerPage = size
+		if size > MaxPerPage {
+			itemsPerPage = MaxPerPage
 		}
 
-		size = size - items_per_page
+		size = size - itemsPerPage
 
-		res = append(res, requestPage{i, items_per_page})
+		res = append(res, requestPage{i, itemsPerPage})
 	}
 
 	return res

@@ -19,20 +19,26 @@ func TestGithubClientOnFakeServerWithSuccess(t *testing.T) {
 
 	// Fake Server sleeps to force timeout on the first two request, third one is successful
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-RateLimit-Limit", "1000")
+		w.Header().Set("X-RateLimit-Remaining", "1000")
+		w.Header().Set("X-RateLimit-Reset", "1000")
 		w.WriteHeader(http.StatusOK)
+
 		_, _ = w.Write([]byte(fakeResponse))
 	}))
 
 	token := "fakeToken"
 	cfg := HttpConfig{
-		OauthToken: token,
-		Timeout:    timeout,
+		OauthToken:      token,
+		Timeout:         timeout,
+		RateLimitConfig: NewRateLimitConfig(time.Second*1000, 1000),
+		Retries:         1000,
 	}
 	c := NewGithubClient("Test", cfg)
 
 	u, err := url.Parse(server.URL + "/")
 	if err != nil {
-		t.Errorf("Unexpected error, err %s", err.Error())
+		t.Fatalf("Unexpected error, err %s", err.Error())
 	}
 
 	//rewrite url to point local server
@@ -40,11 +46,7 @@ func TestGithubClientOnFakeServerWithSuccess(t *testing.T) {
 
 	response, err := c.DoRequest(context.Background(), "barcelona", 1, 2)
 	if err != nil {
-		t.Errorf("Unexpected error, err %s", err.Error())
-	}
-
-	if err != nil {
-		t.Errorf("Unexpected error, err %s", err.Error())
+		t.Fatalf("Unexpected error, err %s", err.Error())
 	}
 
 	if len(response) != 2 {

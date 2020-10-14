@@ -114,7 +114,7 @@ func TestOnEndpointErrorResponseHasErrorEncodedAsResponseBody(t *testing.T) {
 		t.Fatal("Expected error field not found!")
 	}
 
-	if errorMessage != ErrDefaul.Error() {
+	if errorMessage != ErrUnexpected.Error() {
 		t.Errorf("Unexpected error message, expected %s but got %s", expectedError.Error(), errorMessage)
 	}
 }
@@ -183,7 +183,6 @@ func TestMakeAuthTopContributorsHandlerOnFakeAuthServicePassingCredentialsDoesNo
 	authSvc := &fakeAuthService{"fakeToken"}
 
 	h := s.makeAuthTopContributorsHandler(svc, authSvc, "fakeApp")
-
 	svr := httptest.NewServer(h)
 
 	defer func() {
@@ -196,7 +195,7 @@ func TestMakeAuthTopContributorsHandlerOnFakeAuthServicePassingCredentialsDoesNo
 
 	expectedSize := 150
 
-	uri := fmt.Sprintf("%s?size=%d", svr.URL, expectedSize)
+	uri := fmt.Sprintf("%s?city=barcelona&size=%d", svr.URL, expectedSize)
 
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
@@ -208,7 +207,7 @@ func TestMakeAuthTopContributorsHandlerOnFakeAuthServicePassingCredentialsDoesNo
 
 	resp, err := netClient.Do(req)
 	if err != nil {
-		t.Errorf("Unexpected error executing request, err %s", err.Error())
+		t.Fatalf("Unexpected error executing request, err %s", err.Error())
 	}
 
 	defer func() {
@@ -223,6 +222,9 @@ func TestMakeAuthTopContributorsHandlerOnFakeAuthServicePassingCredentialsDoesNo
 	if err != nil {
 		t.Fatalf("Unexpected error readyng response body, err %s", err.Error())
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	e := make(map[string][]*provider.Contributor)
 	err = json.Unmarshal(body, &e)

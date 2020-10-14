@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"github.com/marcosQuesada/githubTop/pkg/log"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-func TestGithubRepositoryOnFakeServerWithRetriesOnTimeoutAndLastSuccessResponse(t *testing.T) {
+func TestGithubRepositoryOnFakeServerWithRetriesOnTimeoutFiresMaxRetries(t *testing.T) {
 	var iterations = 0
 	var maxRetries = 3
 	var timeout = time.Millisecond * 100
@@ -22,6 +23,7 @@ func TestGithubRepositoryOnFakeServerWithRetriesOnTimeoutAndLastSuccessResponse(
 		mutex.Lock()
 		defer mutex.Unlock()
 
+		log.Info("Iterate")
 		iterations++
 		if iterations < maxRetries {
 			// Sleep to force request timeout
@@ -40,38 +42,16 @@ func TestGithubRepositoryOnFakeServerWithRetriesOnTimeoutAndLastSuccessResponse(
 	r := NewHttpGithubRepository("test", cfg)
 	u, err := url.Parse(server.URL + "/")
 	if err != nil {
-		t.Errorf("Unexpected error, err %v", err.Error())
+		t.Fatalf("Unexpected error, err %v", err)
 	}
 
 	//rewrite url to point local server
 	r.client.setURL(u)
 
-	response, err := r.GetGithubTopContributors(context.Background(), "barcelona", 2)
-	if err != nil {
-		log.Info(err.Error())
+	_, err = r.GetGithubTopContributors(context.Background(), "barcelona", 2)
+	if !errors.Is(err, ErrMaxRetries) {
+		t.Errorf("unexpected error getting top contributors, error %v", err)
 	}
-
-	if err != nil {
-		t.Errorf("Unexpected error, err %v", err.Error())
-	}
-
-	var it int
-	mutex.RLock()
-	it = iterations
-	mutex.RUnlock()
-
-	if it != 3 {
-		t.Errorf("Unexpected retru size, expected 3 got %d", iterations)
-	}
-
-	if len(response) != 2 {
-		t.Fatalf("Unexpected response size, expected 2 got %d", len(response))
-	}
-
-	if response[0].Name != "kristianmandrup" {
-		t.Error("Unexpected first response")
-	}
-
 }
 
 var dataProvider = []struct {

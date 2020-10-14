@@ -15,8 +15,8 @@ import (
 	"strconv"
 )
 
-// ErrDefaul happens on unknown source error
-var ErrDefaul = errors.New("Unexpected Error.")
+// ErrUnexpected happens on unknown source error
+var ErrUnexpected = errors.New("unexpected Error")
 
 // TopContributorsRequest defines api request
 type TopContributorsRequest struct {
@@ -41,14 +41,24 @@ func topContributorsRequestDecoder(_ context.Context, r *http.Request) (interfac
 
 	// Let service track all request, even the bad ones, that's why we don't return error here
 	city := r.URL.Query().Get("city")
-	rawSize := r.URL.Query().Get("size")
+	if city == "" {
+		return nil, service.ErrEmptyCity
+	}
 
+	rawSize := r.URL.Query().Get("size")
 	var size = int64(0)
 	if rawSize != "" {
 		size, err = strconv.ParseInt(rawSize, 10, 0)
 		if err != nil {
-			log.Errorf("Bad request, error parsing size, err %s", err.Error())
+			log.Errorf("Bad request, error parsing size, err %v", err)
+			return nil, service.ErrInvalidArgument
 		}
+	}
+
+	if size != service.SmallSize && size != service.MediumSize && size != service.LargeSize {
+		log.Errorf("Bad Request, size %d not permitted", size)
+
+		return nil, service.ErrInvalidArgument
 	}
 
 	return TopContributorsRequest{City: city, Size: int(size), Token: token}, nil
@@ -85,7 +95,7 @@ func authDecoder(_ context.Context, r *http.Request) (interface{}, error) {
 func authResponseEncoder(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	ar, ok := response.(AuthResponse)
 	if !ok {
-		err := fmt.Errorf("Unexpected response type, %v", response)
+		err := fmt.Errorf("unexpected response type, %t", response)
 		log.Error(err)
 		errorEncoder(ctx, err, w)
 
@@ -142,10 +152,9 @@ func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 			w.WriteHeader(http.StatusServiceUnavailable)
 
 		default:
-			err = ErrDefaul
+			err = ErrUnexpected
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-
 	}
 
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{

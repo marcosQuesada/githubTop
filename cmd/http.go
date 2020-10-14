@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/marcosQuesada/githubTop/pkg/log"
 	"github.com/marcosQuesada/githubTop/pkg/provider"
+	"github.com/marcosQuesada/githubTop/pkg/provider/cache"
 	httpServer "github.com/marcosQuesada/githubTop/pkg/server/http"
 	"github.com/marcosQuesada/githubTop/pkg/service"
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	APP_NAME = "GithubTop"
+	AppName = "GithubTop"
 )
 
 var (
@@ -44,13 +45,17 @@ var httpCmd = &cobra.Command{
 		}
 
 		cacheCfg := provider.NewCacheConfig(cacheTTL, cacheExpirationFreq)
-		repo := provider.NewHttpGithubRepository(APP_NAME, cfg)
-		cache := provider.NewGithubRepositoryCache(cacheCfg, repo)
+		repo := provider.NewHttpGithubRepository(AppName, cfg)
+		cachePersistence, err := cache.NewLRUCache(cacheCfg.Ttl, cacheCfg.ExpirationFrequency)
+		if err != nil {
+			log.Fatalf("unexepcted error initializing lru cache, error %v", err)
+		}
+		cache := provider.NewCacheMiddleware(cachePersistence, repo)
 
-		svc := service.New(cache, APP_NAME)
+		svc := service.New(cache)
 		ac := service.NewDefaultStaticAuthorizer()
-		auth := service.NewAuth(ac, "config/app.rsa", "config/app.rsa.pub", tokenTTL, APP_NAME)
-		s := httpServer.New(port, svc, auth, APP_NAME)
+		auth := service.NewAuth(ac, "config/app.rsa", "config/app.rsa.pub", tokenTTL, AppName)
+		s := httpServer.New(port, svc, auth, AppName)
 
 		c := make(chan os.Signal, 1)
 
@@ -68,8 +73,7 @@ var httpCmd = &cobra.Command{
 			s.Terminate()
 		}()
 
-		err := s.Run()
-		if err != nil {
+		if err := s.Run(); err != nil {
 			log.Errorf("Unexpected error: %v", err.Error())
 		}
 	},

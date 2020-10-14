@@ -16,7 +16,7 @@ const (
 )
 
 // ErrUnauthorized happens on not authorized
-var ErrUnauthorized = errors.New("Forbiden access.")
+var ErrUnauthorized = errors.New("forbidden access")
 
 // AuthService takes care on authentication features
 type AuthService interface {
@@ -94,7 +94,6 @@ func (s *defaultAuthService) Authorize(_ context.Context, user, pass string) (st
 
 // IsValidToken validates jwt token
 func (s *defaultAuthService) IsValidToken(_ context.Context, tokenKey string) (bool, error) {
-
 	if tokenKey == "" {
 		log.Error("Token is Empty")
 
