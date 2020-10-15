@@ -27,8 +27,8 @@ func TestAddEntryOnRedisCache(t *testing.T) {
 	key := "foo"
 	value := []*provider.Contributor{
 		{
-			ID: 123,
-			Name:  "fooBar",
+			ID:   123,
+			Name: "fooBar",
 		},
 	}
 	err := r.Add(key, value)
@@ -50,7 +50,7 @@ func TestAddEntryOnRedisCache(t *testing.T) {
 		t.Fatal("Unexpected cache response, empty size")
 	}
 
-	if v[0].Name != value[0].Name{
+	if v[0].Name != value[0].Name {
 		t.Errorf("expected values do not match, expected %s got %s", v[0].Name, value[0].Name)
 	}
 }
@@ -72,8 +72,8 @@ func TestAddEntryOnRedisCacheAndWaitExpiration(t *testing.T) {
 	key := "foo"
 	value := []*provider.Contributor{
 		{
-			ID: 123,
-			Name:  "fooBar",
+			ID:   123,
+			Name: "fooBar",
 		},
 	}
 	err := r.Add(key, value)

@@ -21,7 +21,7 @@ var dataProvider = []struct {
 	err          error
 }{
 	{"http://localhost:8000/top/v1", 0, "", provider.APIv1, provider.SortByRepositories, service.ErrEmptyCity},
-	{"http://localhost:8000/top/v1?size=150", 150, "",provider.APIv1, provider.SortByRepositories,  service.ErrEmptyCity},
+	{"http://localhost:8000/top/v1?size=150", 150, "", provider.APIv1, provider.SortByRepositories, service.ErrEmptyCity},
 	{"http://localhost:8000/top/v1?city=barcelona&size=150", 150, "barcelona", provider.APIv1, provider.SortByRepositories, nil},
 	{"http://localhost:8000/top/v1?size=aaaaa", 0, "", provider.APIv1, provider.SortByRepositories, service.ErrEmptyCity},
 	{"http://localhost:8000/top/v2?city=barcelona&size=150", 150, "barcelona", provider.APIv2, provider.SortByRepositories, nil},

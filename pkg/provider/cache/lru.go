@@ -16,8 +16,8 @@ const (
 )
 
 var (
-
-	ErrUnexpectedType = errors.New("unexpected type.")
+	// ErrUnexpectedType happens on non expected type
+	ErrUnexpectedType = errors.New("unexpected type")
 )
 
 // LruCache defines an LRU cache with expiration
@@ -165,4 +165,3 @@ func newEntry(ttl time.Duration, v interface{}) *Entry {
 		Value:  v,
 	}
 }
-

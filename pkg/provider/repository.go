@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	// MaxPerPage max responses by page
 	MaxPerPage = 100
 )
 

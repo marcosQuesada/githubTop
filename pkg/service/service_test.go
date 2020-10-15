@@ -72,15 +72,15 @@ func newFakeRepository(totalItems int) *fakeRepository {
 	}
 }
 
-func (f *fakeRepository) GetGithubTopContributors(ctx context.Context,  req provider.GithubTopRequest) ([]*provider.Contributor, error) {
+func (f *fakeRepository) GetGithubTopContributors(ctx context.Context, req provider.GithubTopRequest) ([]*provider.Contributor, error) {
 	return f.items, nil
 }
 
-type fakeRanking struct {}
+type fakeRanking struct{}
 
 func (f *fakeRanking) GetTopSearchedLocations(ctx context.Context, size int) ([]*provider.Location, error) {
 	return []*provider.Location{
-		{Name: "barcelona", Score: 1000},{Name: "badalona", Score: 10},
+		{Name: "barcelona", Score: 1000}, {Name: "badalona", Score: 10},
 	}, nil
 }
 

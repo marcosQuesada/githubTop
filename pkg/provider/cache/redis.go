@@ -8,11 +8,13 @@ import (
 	"time"
 )
 
+// Redis implements a cache with expiration
 type Redis struct {
 	client *redis.Client
 	ttl    time.Duration
 }
 
+// NewRedis instantiates redis cache
 func NewRedis(cl *redis.Client, ttl time.Duration) *Redis {
 	return &Redis{
 		client: cl,
@@ -20,6 +22,7 @@ func NewRedis(cl *redis.Client, ttl time.Duration) *Redis {
 	}
 }
 
+// Add Cache entry
 func (r *Redis) Add(k string, v interface{}) error {
 	raw, err := json.Marshal(v)
 	if err != nil {
@@ -30,10 +33,11 @@ func (r *Redis) Add(k string, v interface{}) error {
 	return cmd.Err()
 }
 
+// Get cache entry
 func (r *Redis) Get(k string) (interface{}, error) {
 	cmd := r.client.Get(context.Background(), k)
 	if cmd.Err() == redis.Nil {
-		return nil,  provider.ErrCacheMiss
+		return nil, provider.ErrCacheMiss
 	}
 	raw, err := cmd.Result()
 	if err != nil {
@@ -41,12 +45,12 @@ func (r *Redis) Get(k string) (interface{}, error) {
 	}
 
 	var res []*provider.Contributor
-	err =json.Unmarshal([]byte(raw), &res)
+	err = json.Unmarshal([]byte(raw), &res)
 
 	return res, err
 }
 
+// Terminate stop cache
 func (r *Redis) Terminate() {
 	_ = r.client.Close()
 }
-

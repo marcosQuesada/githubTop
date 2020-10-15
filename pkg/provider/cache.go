@@ -9,10 +9,12 @@ import (
 	"time"
 )
 
-var(
-	ErrCacheMiss      = errors.New("entry not found in cache.")
+var (
+	// ErrCacheMiss happens on entry not found in cache
+	ErrCacheMiss = errors.New("entry not found in cache")
 )
 
+// Cache defines a generic cache interface
 type Cache interface {
 	// Add entry to cache
 	Add(k string, v interface{}) error
@@ -49,7 +51,7 @@ func NewCacheMiddleware(cache Cache, repo GithubRepository) *cacheMiddleware {
 }
 
 // GetGithubTopContributors tries cache lookup, on miss access repository
-func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context,  req GithubTopRequest) ([]*Contributor, error) {
+func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, req GithubTopRequest) ([]*Contributor, error) {
 	k := r.key(req.City, req.Size)
 	res, err := r.cache.Get(k)
 	if err == nil {
@@ -82,7 +84,7 @@ func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context,  req Git
 func (r *cacheMiddleware) AddTopContributors(city string, size int, contributors []*Contributor) error {
 	k := r.key(city, size)
 
-	return r.cache.Add(k,  contributors)
+	return r.cache.Add(k, contributors)
 }
 
 // Terminate close repository

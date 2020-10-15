@@ -167,6 +167,7 @@ type staticAuthorizer struct {
 	user, pass string
 }
 
+// NewDefaultStaticAuthorizer fake authorizer
 func NewDefaultStaticAuthorizer() *staticAuthorizer {
 	return &staticAuthorizer{
 		user: "test",
@@ -174,6 +175,7 @@ func NewDefaultStaticAuthorizer() *staticAuthorizer {
 	}
 }
 
+// ValidCredentials fake credentials validator
 func (s *staticAuthorizer) ValidCredentials(user, pass string) (bool, error) {
 	return user == s.user && pass == s.pass, nil
 }

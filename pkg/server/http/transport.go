@@ -49,7 +49,7 @@ func topContributorsRequestDecoder(_ context.Context, r *http.Request) (interfac
 	}
 
 	rawSize := r.URL.Query().Get("size")
-	var size = int64(0)
+	var size int64
 	if rawSize == "" {
 		return nil, service.ErrInvalidArgument
 	}
@@ -81,7 +81,7 @@ func topContributorsRequestDecoder(_ context.Context, r *http.Request) (interfac
 
 // TopContributorsRequest defines api request
 type TopSearchedLocationsRequest struct {
-	Size  int
+	Size int
 }
 
 // TopContributorsResponse defines api response
@@ -91,7 +91,7 @@ type TopSearchedLocationsResponse struct {
 
 func topSearchedLocationsRequestDecoder(_ context.Context, r *http.Request) (interface{}, error) {
 	rawSize := r.URL.Query().Get("size")
-	var size = int64(0)
+	var size int64
 	if rawSize == "" {
 		return nil, service.ErrInvalidArgument
 	}

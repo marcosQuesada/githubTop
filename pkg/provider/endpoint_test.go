@@ -49,7 +49,7 @@ func TestGithubClientOnFakeServerWithSuccess(t *testing.T) {
 		Size:    2,
 		Version: APIv1,
 	}
-	response, err := c.DoRequest(context.Background(),  req, 1, 2)
+	response, err := c.DoRequest(context.Background(), req, 1, 2)
 	if err != nil {
 		t.Fatalf("Unexpected error, err %s", err.Error())
 	}
@@ -82,8 +82,8 @@ func TestGithubClientOnApiV2WithFakeServerWithSuccess(t *testing.T) {
 
 	token := "fakeToken"
 	cfg := HttpConfig{
-		OauthToken:      token,
-		Timeout:         timeout,
+		OauthToken: token,
+		Timeout:    timeout,
 	}
 	c := NewGithubClient("Test", cfg)
 
@@ -100,7 +100,7 @@ func TestGithubClientOnApiV2WithFakeServerWithSuccess(t *testing.T) {
 		Size:    2,
 		Version: APIv2,
 	}
-	response, err := c.DoRequest(context.Background(),  req, 1, 2)
+	response, err := c.DoRequest(context.Background(), req, 1, 2)
 	if err != nil {
 		t.Fatalf("Unexpected error, err %s", err.Error())
 	}

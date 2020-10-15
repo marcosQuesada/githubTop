@@ -33,7 +33,7 @@ func TestRedisRankingPopulatesRequestedLocations(t *testing.T) {
 	cl := redis.NewClient(opt)
 
 	r := NewRedis(cl)
-	defer func(){
+	defer func() {
 		_, err := r.client.Del(context.Background(), SortedSetKey).Result()
 		if err != nil {
 			t.Fatalf("unexpected error removing sorted set, error %v", err)
@@ -73,7 +73,7 @@ func TestRedisRankingTopLocations(t *testing.T) {
 	cl := redis.NewClient(opt)
 
 	r := NewRedis(cl)
-	defer func(){
+	defer func() {
 		_, err := r.client.Del(context.Background(), SortedSetKey).Result()
 		if err != nil {
 			t.Fatalf("unexpected error removing sorted set, error %v", err)

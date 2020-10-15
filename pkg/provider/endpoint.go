@@ -25,6 +25,7 @@ const (
 	APIv2              = "v2"
 )
 
+// ErrMaxRetries happens on max request achieved
 var ErrMaxRetries = errors.New("max retries achieved")
 
 // GithubClient builds a github http client
@@ -148,11 +149,9 @@ func retryOnResponseError(err error) (retry bool) {
 		log.Errorf("Unexpected error searching github users, err %s", err.Error())
 
 		return true
-
 	default:
 		return true
 	}
-
 }
 
 func buildGithubClient(oauthToken string) *github.Client {

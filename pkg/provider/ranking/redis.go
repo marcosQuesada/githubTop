@@ -8,16 +8,19 @@ import (
 
 const SortedSetKey = "location-ranking"
 
+// Redis implements a redis baked ranking in top of a sorted set
 type Redis struct {
 	client *redis.Client
 }
 
+// NewRedis instantiates redis ranking
 func NewRedis(cl *redis.Client) *Redis {
 	return &Redis{
 		client: cl,
 	}
 }
 
+// IncreaseScore city score  increase by 1
 func (r *Redis) IncreaseScore(city string) error {
 	return r.client.ZIncr(context.Background(), SortedSetKey, &redis.Z{
 		Score:  1,
@@ -26,8 +29,9 @@ func (r *Redis) IncreaseScore(city string) error {
 
 }
 
+// Top returns priority queue from head up to "size" length
 func (r *Redis) Top(size int) ([]*provider.Location, error) {
-	res, err := r.client.ZRevRangeByScoreWithScores(context.Background(), SortedSetKey,  &redis.ZRangeBy{
+	res, err := r.client.ZRevRangeByScoreWithScores(context.Background(), SortedSetKey, &redis.ZRangeBy{
 		Min: "-inf",
 		Max: "+inf",
 	}).Result()
@@ -51,6 +55,7 @@ func (r *Redis) Top(size int) ([]*provider.Location, error) {
 	return top, nil
 }
 
-func(r *Redis) Len() (int64, error) {
+// Len returns ranking size
+func (r *Redis) Len() (int64, error) {
 	return r.client.ZCount(context.Background(), SortedSetKey, "-inf", "+inf").Result()
 }

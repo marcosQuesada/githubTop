@@ -7,8 +7,10 @@ import (
 	"sync"
 )
 
+// DefaultPriorityQueueSize max priority queue size
 const DefaultPriorityQueueSize = 10000
 
+// InMemory defines an inMemory ranking in top of a priority queue over the heap
 type InMemory struct {
 	priorityQueue PriorityQueue
 	maxSize       int
@@ -16,6 +18,7 @@ type InMemory struct {
 	mutex         sync.RWMutex
 }
 
+// NewInMemory instantiates inMemory ranking
 func NewInMemory(size int) *InMemory {
 	pq := make(PriorityQueue, 0)
 	heap.Init(&pq)
@@ -27,6 +30,7 @@ func NewInMemory(size int) *InMemory {
 	}
 }
 
+// IncreaseScore city score  increase by 1
 func (i *InMemory) IncreaseScore(city string) error {
 	log.Infof("Increasing score from %s", city)
 	i.mutex.Lock()
@@ -53,14 +57,7 @@ func (i *InMemory) IncreaseScore(city string) error {
 	return nil
 }
 
-func (i *InMemory) cap() {
-	if i.priorityQueue.Len() <= i.maxSize {
-		return
-	}
-
-	i.priorityQueue = i.priorityQueue[:i.maxSize]
-}
-
+// Top returns priority queue from head up to "size" length
 func (i *InMemory) Top(size int) ([]*provider.Location, error) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
@@ -71,6 +68,7 @@ func (i *InMemory) Top(size int) ([]*provider.Location, error) {
 	return i.priorityQueue[:size], nil
 }
 
+// Len returns ranking size
 func (i *InMemory) Len() int {
 	return i.priorityQueue.Len()
 }
@@ -78,18 +76,22 @@ func (i *InMemory) Len() int {
 // A PriorityQueue implements heap.Interface and holds Locations.
 type PriorityQueue []*provider.Location
 
+// Len returns priority queue size
 func (pq PriorityQueue) Len() int { return len(pq) }
 
+// Less comparative method between locations
 func (pq PriorityQueue) Less(i, j int) bool {
 	return pq[i].Score > pq[j].Score
 }
 
+// Swap exchanges 2 locations
 func (pq PriorityQueue) Swap(i, j int) {
 	pq[i], pq[j] = pq[j], pq[i]
 	pq[i].Index = i
 	pq[j].Index = j
 }
 
+// Push inserts a location in the top of the priority queue
 func (pq *PriorityQueue) Push(x interface{}) {
 	n := len(*pq)
 	item := x.(*provider.Location)
@@ -97,6 +99,7 @@ func (pq *PriorityQueue) Push(x interface{}) {
 	*pq = append(*pq, item)
 }
 
+// Pop remove and returns last element on priority queue
 func (pq *PriorityQueue) Pop() interface{} {
 	old := *pq
 	n := len(old)
@@ -107,7 +110,6 @@ func (pq *PriorityQueue) Pop() interface{} {
 	return item
 }
 
-// update modifies the priority and value of an Item in the queue.
 func (pq *PriorityQueue) update(item *provider.Location, value string, priority int) {
 	item.Name = value
 	item.Score = priority

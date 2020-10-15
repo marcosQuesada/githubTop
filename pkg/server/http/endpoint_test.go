@@ -269,9 +269,9 @@ func (s *fakeService) getRequestedSize() int {
 	return s.requestSize
 }
 
-func (s *fakeService) GetTopSearchedLocations(_ context.Context, size int)([]*provider.Location, error) {
+func (s *fakeService) GetTopSearchedLocations(_ context.Context, size int) ([]*provider.Location, error) {
 	return []*provider.Location{
-		{Name: "barcelona", Score: 1000},{Name: "badalona", Score: 10},
+		{Name: "barcelona", Score: 1000}, {Name: "badalona", Score: 10},
 	}, nil
 }
 

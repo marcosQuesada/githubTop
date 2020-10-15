@@ -15,9 +15,10 @@ import (
 	"sync"
 )
 
+// ErrClosedConn happens when listener is closing
 var ErrClosedConn = errors.New("use of closed network connection")
 
-
+// Service definess application interface
 type Service interface {
 	GetTopContributors(ctx context.Context, r provider.GithubTopRequest) ([]*provider.Contributor, error)
 	GetTopSearchedLocations(ctx context.Context, size int) ([]*provider.Location, error)
@@ -60,7 +61,7 @@ func (s *Server) Run() error {
 	r.Methods("GET").Path("/top-contributors/v1").Handler(
 		s.makeTopContributorsHandler(s.svc, s.appName))
 	r.Methods("GET").Path("/top-contributors/v2").Handler(
-		s.makeTopContributorsHandler(s.svc, fmt.Sprintf("%s_v2",s.appName)))
+		s.makeTopContributorsHandler(s.svc, fmt.Sprintf("%s_v2", s.appName)))
 
 	r.Methods("GET").Path("/auth/top-contributors/v1").Handler(
 		s.makeAuthTopContributorsHandler(s.svc, s.authSvc, s.appName))

@@ -15,20 +15,25 @@ const (
 )
 
 var (
+	// ErrInvalidArgument happens on request without valid arguments
 	ErrInvalidArgument = errors.New("invalid Arguments")
-	ErrEmptyCity       = errors.New("bad Request, void City")
+	// ErrEmptyCity happens on request without defined city
+	ErrEmptyCity = errors.New("bad Request, void City")
 )
 
+// SearchedLocationsRanking defines location ranking
 type SearchedLocationsRanking interface {
 	GetTopSearchedLocations(ctx context.Context, size int) ([]*provider.Location, error)
 	IncreaseCityScore(ctx context.Context, city string) error
 }
 
+// DefaultService defines core service
 type DefaultService struct {
 	repository provider.GithubRepository
 	ranking    SearchedLocationsRanking
 }
 
+// New instantiates service
 func New(r provider.GithubRepository, rnk SearchedLocationsRanking) *DefaultService {
 	return &DefaultService{
 		repository: r,
@@ -36,6 +41,7 @@ func New(r provider.GithubRepository, rnk SearchedLocationsRanking) *DefaultServ
 	}
 }
 
+// GetTopContributors returns github top by location
 func (s *DefaultService) GetTopContributors(ctx context.Context, r provider.GithubTopRequest) ([]*provider.Contributor, error) {
 	log.Infof("GetTopContributors , city: %s size: %d sort %s", r.City, r.Size, r.Sort)
 	err := s.ranking.IncreaseCityScore(ctx, r.City)
@@ -45,6 +51,7 @@ func (s *DefaultService) GetTopContributors(ctx context.Context, r provider.Gith
 	return s.repository.GetGithubTopContributors(ctx, r)
 }
 
+// GetTopSearchedLocations return top Searched Locations
 func (s *DefaultService) GetTopSearchedLocations(ctx context.Context, size int) ([]*provider.Location, error) {
 	log.Infof("GetTopSearchedLocations , size: %d ", size)
 

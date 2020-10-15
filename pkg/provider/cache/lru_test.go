@@ -60,4 +60,3 @@ func TestAddEntriesToCacheAndExpirerCleansOldEntries(t *testing.T) {
 
 	c.Terminate()
 }
-
