@@ -42,14 +42,14 @@ func TestRedisRankingPopulatesRequestedLocations(t *testing.T) {
 
 	for _, d := range dataProvider {
 		for i := 0; i < d.score; i++ {
-			err := r.IncreaseScore(d.city)
+			err := r.IncreaseScore(context.Background(), d.city)
 			if err != nil {
 				t.Fatalf("unexpected error populating ranking, error %v", err)
 			}
 		}
 	}
 
-	size, err := r.Len()
+	size, err := r.Len(context.Background())
 	if err != nil {
 		t.Fatalf("unexpected error getting length, error %v", err)
 	}
@@ -82,7 +82,7 @@ func TestRedisRankingTopLocations(t *testing.T) {
 
 	for _, d := range dataProvider {
 		for i := 0; i < d.score; i++ {
-			err := r.IncreaseScore(d.city)
+			err := r.IncreaseScore(context.Background(), d.city)
 			if err != nil {
 				t.Fatalf("unexpected error populating ranking, error %v", err)
 			}
@@ -90,7 +90,7 @@ func TestRedisRankingTopLocations(t *testing.T) {
 	}
 
 	topSize := 5
-	res, err := r.Top(topSize)
+	res, err := r.Top(context.Background(), topSize)
 	if err != nil {
 		t.Fatalf("unexpected error getting top, error %v", err)
 	}

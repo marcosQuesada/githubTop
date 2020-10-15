@@ -12,7 +12,7 @@ func TestRepositoryMiddlewareOnCacheHit(t *testing.T) {
 	repo := &fakeRepository{}
 	r := NewCacheMiddleware(ch, repo)
 
-	err := r.AddTopContributors("barcelona", 2, c)
+	err := r.AddTopContributors(context.Background(), "barcelona", 2, c)
 
 	if err != nil {
 		t.Errorf("Unexpected error adding contributors, err: %s", err.Error())
@@ -53,7 +53,7 @@ func TestRepositoryMiddlewareOnCacheMiss(t *testing.T) {
 	repo := &fakeRepository{contributors: c}
 	r := NewCacheMiddleware(ch, repo)
 
-	err := r.AddTopContributors("barcelona", 2, c)
+	err := r.AddTopContributors(context.Background(), "barcelona", 2, c)
 
 	if err != nil {
 		t.Errorf("Unexpected error adding contributors, err: %s", err.Error())
@@ -105,12 +105,12 @@ type fakeCache struct {
 	called       int
 }
 
-func (f *fakeCache) Add(k string, v interface{}) error {
+func (f *fakeCache) Add(_ context.Context, k string, v interface{}) error {
 	f.called++
 	return nil
 }
 
-func (f *fakeCache) Get(k string) (interface{}, error) {
+func (f *fakeCache) Get(_ context.Context, k string) (interface{}, error) {
 	if len(f.contributors) == 0 {
 		return nil, ErrCacheMiss
 	}

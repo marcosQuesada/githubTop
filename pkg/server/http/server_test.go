@@ -33,7 +33,7 @@ func tryConnect(maxConnRetries int) (net.Conn, error) {
 			return nil, errors.New("Max Connection Retries done")
 		}
 
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 200)
 		_, _ = tryConnect(maxConnRetries)
 	}
 

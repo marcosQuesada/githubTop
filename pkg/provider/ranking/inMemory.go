@@ -2,6 +2,7 @@ package ranking
 
 import (
 	"container/heap"
+	"context"
 	"github.com/marcosQuesada/githubTop/pkg/log"
 	"github.com/marcosQuesada/githubTop/pkg/provider"
 	"sync"
@@ -31,7 +32,7 @@ func NewInMemory(size int) *InMemory {
 }
 
 // IncreaseScore city score  increase by 1
-func (i *InMemory) IncreaseScore(city string) error {
+func (i *InMemory) IncreaseScore(_ context.Context, city string) error {
 	log.Infof("Increasing score from %s", city)
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -58,7 +59,7 @@ func (i *InMemory) IncreaseScore(city string) error {
 }
 
 // Top returns priority queue from head up to "size" length
-func (i *InMemory) Top(size int) ([]*provider.Location, error) {
+func (i *InMemory) Top(_ context.Context, size int) ([]*provider.Location, error) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
@@ -69,8 +70,10 @@ func (i *InMemory) Top(size int) ([]*provider.Location, error) {
 }
 
 // Len returns ranking size
-func (i *InMemory) Len() int {
-	return i.priorityQueue.Len()
+func (i *InMemory) Len(_ context.Context) (int64, error) {
+	s := i.priorityQueue.Len()
+
+	return int64(s), nil
 }
 
 // A PriorityQueue implements heap.Interface and holds Locations.

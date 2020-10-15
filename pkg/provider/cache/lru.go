@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/golang-lru/simplelru"
@@ -54,7 +55,7 @@ func NewLRUCache(ttl, freq time.Duration) (*LruCache, error) {
 }
 
 // Add LRU entry
-func (c *LruCache) Add(k string, v interface{}) error {
+func (c *LruCache) Add(_ context.Context, k string, v interface{}) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -65,7 +66,7 @@ func (c *LruCache) Add(k string, v interface{}) error {
 }
 
 // Get LRU entry
-func (c *LruCache) Get(k string) (interface{}, error) {
+func (c *LruCache) Get(_ context.Context, k string) (interface{}, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 

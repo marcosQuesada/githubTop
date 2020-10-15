@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"errors"
 	"github.com/go-redis/redis/v8"
 	"github.com/marcosQuesada/githubTop/pkg/log"
@@ -31,12 +32,12 @@ func TestAddEntryOnRedisCache(t *testing.T) {
 			Name: "fooBar",
 		},
 	}
-	err := r.Add(key, value)
+	err := r.Add(context.Background(), key, value)
 	if err != nil {
 		t.Fatalf("unexpected error adding cache entry, error %v", err)
 	}
 
-	res, err := r.Get(key)
+	res, err := r.Get(context.Background(), key)
 	if err != nil {
 		t.Fatalf("unexpected error getting cache entry, error %v", err)
 	}
@@ -76,13 +77,13 @@ func TestAddEntryOnRedisCacheAndWaitExpiration(t *testing.T) {
 			Name: "fooBar",
 		},
 	}
-	err := r.Add(key, value)
+	err := r.Add(context.Background(), key, value)
 	if err != nil {
 		t.Fatalf("unexpected error adding cache entry, error %v", err)
 	}
 
 	time.Sleep(time.Second * 2)
-	_, err = r.Get(key)
+	_, err = r.Get(context.Background(), key)
 	if err == nil {
 		t.Fatalf("unexpected error getting cache entry, error %v", err)
 	}

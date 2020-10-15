@@ -1,6 +1,7 @@
 package ranking
 
 import (
+	"context"
 	"testing"
 )
 
@@ -9,16 +10,16 @@ func TestInMemoryRankingPopulatesRequestedLocations(t *testing.T) {
 	r := NewInMemory(maxSize)
 	for _, d := range dataProvider {
 		for i := 0; i < d.score; i++ {
-			err := r.IncreaseScore(d.city)
+			err := r.IncreaseScore(context.Background(), d.city)
 			if err != nil {
 				t.Fatalf("unexpected error populating ranking, error %v", err)
 			}
 		}
 	}
 
-	size := r.Len()
+	size, _ := r.Len(context.Background())
 
-	if size != maxSize {
+	if int(size) != maxSize {
 		t.Fatalf("expected sizes do not match, expcted %d got %d", maxSize, size)
 	}
 }
@@ -28,7 +29,7 @@ func TestInMemoryRankingTopLocations(t *testing.T) {
 	r := NewInMemory(maxSize)
 	for _, d := range dataProvider {
 		for i := 0; i < d.score; i++ {
-			err := r.IncreaseScore(d.city)
+			err := r.IncreaseScore(context.Background(), d.city)
 			if err != nil {
 				t.Fatalf("unexpected error populating ranking, error %v", err)
 			}
@@ -36,7 +37,7 @@ func TestInMemoryRankingTopLocations(t *testing.T) {
 	}
 
 	topSize := 5
-	res, err := r.Top(topSize)
+	res, err := r.Top(context.Background(), topSize)
 	if err != nil {
 		t.Fatalf("unexpected error getting top, error %v", err)
 	}

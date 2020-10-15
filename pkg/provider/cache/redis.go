@@ -23,19 +23,19 @@ func NewRedis(cl *redis.Client, ttl time.Duration) *Redis {
 }
 
 // Add Cache entry
-func (r *Redis) Add(k string, v interface{}) error {
+func (r *Redis) Add(ctx context.Context, k string, v interface{}) error {
 	raw, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
-	cmd := r.client.Set(context.Background(), k, raw, r.ttl) //@TODO: Clean out context!
+	cmd := r.client.Set(ctx, k, raw, r.ttl)
 
 	return cmd.Err()
 }
 
 // Get cache entry
-func (r *Redis) Get(k string) (interface{}, error) {
-	cmd := r.client.Get(context.Background(), k)
+func (r *Redis) Get(ctx context.Context, k string) (interface{}, error) {
+	cmd := r.client.Get(ctx, k)
 	if cmd.Err() == redis.Nil {
 		return nil, provider.ErrCacheMiss
 	}

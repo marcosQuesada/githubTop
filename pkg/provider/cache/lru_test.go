@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -14,9 +15,9 @@ func TestAddEntriesToCacheAndExpireOldEntriesCleansCache(t *testing.T) {
 	}
 	defer c.Terminate()
 
-	_ = c.Add("key_1", "foo")
-	_ = c.Add("key_2", "bar")
-	_ = c.Add("key_3", "zzz")
+	_ = c.Add(context.Background(), "key_1", "foo")
+	_ = c.Add(context.Background(), "key_2", "bar")
+	_ = c.Add(context.Background(), "key_3", "zzz")
 
 	if c.Len() != 3 {
 		t.Errorf("Unexpected cache size, expected 3 got %d", c.Len())
@@ -44,9 +45,9 @@ func TestAddEntriesToCacheAndExpirerCleansOldEntries(t *testing.T) {
 		t.Fatalf("Unexpected error creating cache, err: %s", err.Error())
 	}
 
-	_ = c.Add("key_1", "foo")
-	_ = c.Add("key_2", "bar")
-	_ = c.Add("key_3", "zzz")
+	_ = c.Add(context.Background(), "key_1", "foo")
+	_ = c.Add(context.Background(), "key_2", "bar")
+	_ = c.Add(context.Background(), "key_3", "zzz")
 
 	if c.Len() != 3 {
 		t.Errorf("Unexpected cache size, expected 3 got %d", c.Len())

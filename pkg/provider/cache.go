@@ -17,10 +17,10 @@ var (
 // Cache defines a generic cache interface
 type Cache interface {
 	// Add entry to cache
-	Add(k string, v interface{}) error
+	Add(ctx context.Context, k string, v interface{}) error
 
 	// Get entry from cache, puts Entry in top of LRU, so refresh expiration entry
-	Get(k string) (interface{}, error)
+	Get(ctx context.Context, k string) (interface{}, error)
 
 	// Stop expiration worker
 	Terminate()
@@ -53,7 +53,7 @@ func NewCacheMiddleware(cache Cache, repo GithubRepository) *cacheMiddleware {
 // GetGithubTopContributors tries cache lookup, on miss access repository
 func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, req GithubTopRequest) ([]*Contributor, error) {
 	k := r.key(req.City, req.Size)
-	res, err := r.cache.Get(k)
+	res, err := r.cache.Get(ctx, k)
 	if err == nil {
 		c, ok := res.([]*Contributor)
 		if !ok {
@@ -73,7 +73,7 @@ func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, req Gith
 		return nil, errc
 	}
 
-	if err = r.AddTopContributors(req.City, req.Size, c); err != nil {
+	if err = r.AddTopContributors(ctx, req.City, req.Size, c); err != nil {
 		log.Errorf("Error adding element on cache is: %s", err.Error())
 	}
 
@@ -81,10 +81,10 @@ func (r *cacheMiddleware) GetGithubTopContributors(ctx context.Context, req Gith
 }
 
 // AddTopContributors updates cache layer
-func (r *cacheMiddleware) AddTopContributors(city string, size int, contributors []*Contributor) error {
+func (r *cacheMiddleware) AddTopContributors(ctx context.Context, city string, size int, contributors []*Contributor) error {
 	k := r.key(city, size)
 
-	return r.cache.Add(k, contributors)
+	return r.cache.Add(ctx, k, contributors)
 }
 
 // Terminate close repository
