@@ -81,14 +81,15 @@ go run main.go http --oauth  XXXXXXXXXXXXXX (Github Personal Token)
 ```
 
 ## Use cases
- Unprotected access enabled calling:
+
+#### TopContributors Unprotected access enabled calling:
 ```
 curl -X GET "http://localhost:8000/top-contributors/v1?city=barcelona&size=50"
 
 {"Top":[{"ID":125005,"Name":"kristianmandrup","Url":"https://api.github.com/users/kristianmandrup"......
 
 ```
- Calling authenticated endpoint without credentials:
+#### TopContributors authenticated endpoint without credentials:
  ```
  curl -X GET http://localhost:8000/auth/top-contributors/v1?city=barcelona&size=100
 {"error":"Forbiden access"}
@@ -105,7 +106,34 @@ curl -v --cookie ./cookies.text --cookie-jar ./cookies.text "http://localhost:80
 {"Top":[{"ID":125005.....
 ```
 
-Check Metrics on:
+### TopContributors V2 Unprotected access:
+ Included user details on contributor response (email, company and bio), if they are available in github api response (take in mind that those values can be private)
+```
+curl -X GET "http://localhost:8000/top-contributors/v2?city=barcelona&size=50"
+```
+
+### TopSearchedLocations
+ Each top contributors request is tracked in a location ranking (inMemory / Redis)
+```
+curl -X GET "http://localhost:8000/top-searched-locations/v1?size=50"
+{"Top":[{"name":"barcelona","score":4,"index":0},{"name":"madrid","score":1,"index":1},{"name":"london","score":1,"index":2}]}
+```
+
+### Cache implementation details
+ Two available implementations:
+ - InMemory: LRU based with expiration worker
+ - Redis: Using key/value entries with expiration (HashMaps were considered, but, they don't offer single key expiration)
+ 
+ By default, InMemory is available. Using --redis flag specifies a redis host to enable redis cache, replacing inMemory one.
+ 
+### Ranking implementation details
+  Two available implementations:
+  - InMemory: Priority queue based in top of heap (heap.Interface), offering high performance (volatile data will not survive application restarts). Priority Queue has a maximum size, once achieved old entries purged from bottom.
+  - Redis: Implemented in top of regular Sorted Sets, no bounded size
+  
+By default, InMemory is available. Using --redis-ranking flag specifies a redis host to enable redis ranking, replacing inMemory one.
+
+### Check Metrics on:
 ```
 http://localhost:8000/metrics
 ```

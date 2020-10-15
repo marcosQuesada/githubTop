@@ -68,7 +68,6 @@ var httpCmd = &cobra.Command{
 		var rnkPer provider.Ranking
 		rnkPer = ranking.NewInMemory(ranking.DefaultPriorityQueueSize)
 		if redisRanking {
-
 			cl := redis.NewClient(&redis.Options{
 				Addr: redisHost,
 			})
@@ -109,11 +108,11 @@ func init() {
 	httpCmd.Flags().StringVarP(&oauthToken, "oauth", "0", "", "Github personal Oauth token")
 	httpCmd.Flags().DurationVarP(&requestTimeout, "timeout", "t", time.Second*3, "http request timeout")
 	httpCmd.Flags().IntVarP(&requestRetries, "retries", "r", 3, "http request on error retry")
-	httpCmd.Flags().DurationVarP(&cacheTTL, "cachettl", "c", time.Hour*24, "cache TTL")
-	httpCmd.Flags().DurationVarP(&cacheExpirationFreq, "cacheexpfreq", "e", time.Second*5, "cache expiration frequency")
-	httpCmd.Flags().DurationVarP(&tokenTTL, "tokenttl", "l", time.Minute*1, "auth token expiration")
-	httpCmd.Flags().DurationVarP(&rateLimitWindow, "ratewindow", "w", time.Minute*1, "rate limit time window")
-	httpCmd.Flags().IntVarP(&rateLimitMaxRequests, "ratemax", "m", 30, "rate limit max requests")
+	httpCmd.Flags().DurationVarP(&cacheTTL, "cache-ttl", "c", time.Hour*24, "cache TTL")
+	httpCmd.Flags().DurationVarP(&cacheExpirationFreq, "cache-exp-freq", "e", time.Second*5, "cache expiration frequency")
+	httpCmd.Flags().DurationVarP(&tokenTTL, "token-ttl", "l", time.Minute*1, "auth token expiration")
+	httpCmd.Flags().DurationVarP(&rateLimitWindow, "rate-window", "w", time.Minute*1, "rate limit time window")
+	httpCmd.Flags().IntVarP(&rateLimitMaxRequests, "rate-max", "m", 30, "rate limit max requests")
 	httpCmd.Flags().StringVarP(&redisHost, "redis", "s", "", "Redis host if any")
 	httpCmd.Flags().BoolVarP(&redisRanking, "redis-ranking", "k", false, "Use redis ranking")
 }

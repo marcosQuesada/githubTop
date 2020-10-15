@@ -18,7 +18,7 @@ import (
 // ErrClosedConn happens when listener is closing
 var ErrClosedConn = errors.New("use of closed network connection")
 
-// Service definess application interface
+// Service defines application interface
 type Service interface {
 	GetTopContributors(ctx context.Context, r provider.GithubTopRequest) ([]*provider.Contributor, error)
 	GetTopSearchedLocations(ctx context.Context, size int) ([]*provider.Location, error)

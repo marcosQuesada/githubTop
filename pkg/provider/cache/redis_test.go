@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-// @TODO: Mark as integration test!
 func TestAddEntryOnRedisCache(t *testing.T) {
 	if testing.Short() {
 		log.Info("Skipping tests because of Short flag")
