@@ -71,6 +71,9 @@ func (i *InMemory) Top(_ context.Context, size int) ([]*provider.Location, error
 
 // Len returns ranking size
 func (i *InMemory) Len(_ context.Context) (int64, error) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
 	s := i.priorityQueue.Len()
 
 	return int64(s), nil
